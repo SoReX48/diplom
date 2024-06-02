@@ -1,0 +1,27 @@
+---
+- hosts: nginx, bastion, elastic, kibana
+  become: true
+  tasks:
+  - name: Install required packages
+    apt:
+     name: ["zabbix-agent"]
+     state: present
+
+  - name: "Copy zabbix_agentd.conf to remote server"
+    copy:
+      src: /home/user/project_diplom/ansible/config/zabbix_agent.conf
+      dest: /etc/zabbix/zabbix_agentd.conf
+      owner: root
+      group: sudo
+      mode: '0644'
+
+  - name: "Start and Enable Instaled Services"
+    service:
+      enabled: yes
+      state: started
+      name: zabbix-agent
+
+  - name: restart zabbix agent
+    service:
+      name: zabbix-agent
+      state: restarted

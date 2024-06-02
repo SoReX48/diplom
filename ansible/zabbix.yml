@@ -1,0 +1,136 @@
+---
+- hosts: zabbix
+  become: true
+  vars:
+    - password_db: 123
+  tasks:
+    - name: install packages
+      become: true
+      apt:
+        state: present
+        name:
+          - tcsh
+          - htop
+
+    - name: create a directory
+      ansible.builtin.file:
+        path: /etc/zabbix-files
+        state: directory
+        mode: "0755"
+
+    - name: download the zabbix files
+      ansible.builtin.get_url:
+        url: "https://repo.zabbix.com/zabbix/6.4/ubuntu/pool/\
+          main/z/zabbix-release/zabbix-release_6.4-1+ubuntu22.04_all.deb"
+        dest: /etc/zabbix-files
+      become: true
+
+    - name: Install the zabbix package
+      ansible.builtin.apt:
+        deb: /etc/zabbix-files/zabbix-release_6.4-1+ubuntu22.04_all.deb
+      become: true
+
+    - name: update apt packages
+      apt:
+        force_apt_get: true
+        update_cache: yes
+        upgrade: dist
+
+      become: true
+
+    - name: Install zabbix frontend, agend and server
+      ansible.builtin.apt:
+        pkg:
+          - zabbix-server-mysql
+          - zabbix-frontend-php
+          - zabbix-nginx-conf
+          - zabbix-sql-scripts
+          - zabbix-agent
+
+    - name: Install Mysql
+      ansible.builtin.apt:
+        name:
+          - mysql-server
+          - python3-pip
+          - libmysqlclient-dev
+          - python3-dev
+          - python3-mysqldb
+        state: present
+
+    - name: enable and reload mysql
+      ansible.builtin.systemd:
+        name: mysql
+        enabled: true
+        masked: no
+        state: restarted
+
+    - name: create mysql user zabbix and password
+      community.mysql.mysql_user:
+        name: zabbix
+        password: "{{password_db}}"
+        priv: "*.*:ALL,GRANT"
+        state: present
+
+    - name: create mysql database
+      community.mysql.mysql_db:
+        name: zabbix
+        encoding: utf8mb4
+        collation: utf8mb4_bin
+        state: present
+
+    - name: search for server.sql
+      stat:
+        path: /usr/share/zabbix-sql-scripts/mysql/server.sql
+      register: result
+
+    - name: Extract .gz into /tmp
+      ansible.builtin.shell:
+        cmd: gunzip /usr/share/zabbix-sql-scripts/mysql/server.sql.gz
+      when: not result.stat.exists
+
+    - name: import preset (will not be executed if server.sql existed before Extracting)
+      community.mysql.mysql_db:
+        name: zabbix
+        state: import
+        target: /usr/share/zabbix-sql-scripts/mysql/server.sql
+      when: not result.stat.exists
+
+    - name: set new database password for mysql database
+      ansible.builtin.lineinfile:
+        path: /etc/zabbix/zabbix_server.conf
+        insertafter: "DBPassword="
+        line: DBPassword={{password_db}}
+
+    - name: set php port
+      shell: sed -i 's/#        listen          8080;/        listen          8080;/g' /etc/zabbix/nginx.conf
+
+    - name: set php server address
+      shell: sed -i 's/#        server_name     example.com;;/        server_name     zabbix.example.com;/g' /etc/zabbix/nginx.conf
+
+    - name: enable and restart zabbix and webserver
+      ansible.builtin.systemd:
+        name: zabbix-server
+        enabled: true
+        masked: no
+        state: restarted
+
+    - name: enable and restart zabbix agent
+      ansible.builtin.systemd:
+        name: zabbix-agent
+        enabled: true
+        masked: no
+        state: restarted
+
+    - name: enable and restart nginx
+      ansible.builtin.systemd:
+        name: nginx
+        enabled: true
+        masked: no
+        state: restarted
+
+    - name: enable and restart php
+      ansible.builtin.systemd:
+        name: php8.1-fpm
+        enabled: true
+        masked: no
+        state: restarted

@@ -1,0 +1,43 @@
+---
+- name: Install kibana
+  hosts: kibana
+  become: yes
+
+  tasks:
+    - name: Update apt cache
+      apt:
+        update_cache: yes
+        
+    - name: install gnupg, apt-transport-https
+      apt:
+        name:
+          - apt-transport-https
+          - gnupg
+        state: present
+
+    - name: Get kibana.7.17.14
+      ansible.builtin.get_url:  
+        url: https://mirror.yandex.ru/mirrors/elastic/7/pool/main/k/kibana/kibana-7.17.14-amd64.deb 
+        dest: /home/user/
+
+    - name: Install kibana
+      apt:
+        deb: /home/user/kibana-7.17.14-amd64.deb
+
+    - name: Copy config file for kibana
+      copy:
+        src: /home/user/project_diplom/ansible/config/kibana.yml
+        dest: /etc/kibana
+        mode: 0644
+        owner: user
+        group: root
+
+    - name: restarted kibana
+      service:
+        name: kibana
+        state: restarted   
+
+    - name: systemctl enable kibana
+      ansible.builtin.service:
+        name: kibana
+        enabled: yes

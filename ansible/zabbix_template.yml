@@ -1,0 +1,24 @@
+---
+- hosts: nginx, bastion, elastic, kibana
+  become: true
+  vars:
+   zabbix_server_ip: 192.168.4.20
+  
+  tasks:
+  - name: "Install required packages"
+    apt:
+     name: ["zabbix-agent"]
+     state: present
+     
+  - name: "Copy Zabbix Agent config"
+    ansible.builtin.template:
+      src: ./templates/zabbix_agent_conf.j2
+      dest: /etc/zabbix/zabbix_agentd.conf
+      owner: root
+      group: sudo
+      mode: '0644'
+
+  - name: "Restart Zabbix Agent"
+    service:
+      name: zabbix-agent
+      state: restarted

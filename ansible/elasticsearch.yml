@@ -1,0 +1,55 @@
+---
+- name: Install elasticsearch
+  hosts: elastic
+  become: yes
+
+  tasks:
+    - name: Update apt cache
+      apt:
+        update_cache: yes
+
+    - name: Install gnupg, apt-transport-https
+      apt:
+        name:
+          - apt-transport-https
+          - gnupg
+        state: present
+
+    - name: Копирование GPG-Ключа Elastic на целевую машину
+      copy:
+        src: /home/user/project_diplom/ansible/file/GPG-KEY-elasticsearch
+        dest: /tmp/GPG-KEY-elasticsearch
+
+    - name: установка GPG-ключа Elastic
+      ansible.builtin.apt_key:
+        file: /tmp/GPG-KEY-elasticsearch
+        state: present
+
+    - name: Add Elastic repository
+      ansible.builtin.apt_repository:
+        repo: "deb https://mirror.yandex.ru/mirrors/elastic/7/ stable main"
+        state: present
+
+    - name: Install Elastic
+      ansible.builtin.apt:
+        name: elasticsearch
+        state: present
+
+    - name: Copy config file for elasticsearch
+      copy:
+        src: /home/user/project_diplom/ansible/config/elasticsearch.yml
+        dest: /etc/elasticsearch
+        mode: 0660
+        owner: root
+        group: elasticsearch
+
+    - name: Systemctl daemon reload
+      systemd:
+        daemon_reload: true
+        name: elasticsearch.service
+        state: started
+
+    - name: Systemctl enable elasticsearch
+      systemd:
+        name: elasticsearch.service
+        state: restarted

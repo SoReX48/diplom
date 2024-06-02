@@ -1,0 +1,32 @@
+---
+- hosts: "nginx"
+  become:
+    true
+
+  tasks:
+  - name: "Install nginx"
+    apt:
+     name: nginx
+     update_cache: yes
+     state: present
+
+  - name: "Copy website index.html"
+    copy:
+      src: /home/user/project_diplom/ansible/index.html
+      dest: /var/www/html/index.html
+      owner: root
+      group: sudo
+      mode: "0644"
+
+  - name: "Copy stub_status.conf"
+    copy:
+      src: /home/user/project_diplom/ansible/config/nginx/stub_status.conf
+      dest: /etc/nginx/conf.d/stub_status.conf
+      owner: root
+      group: sudo
+      mode: "0644"
+
+  - name: "Restart Nginx"
+    service:
+      name: nginx
+      state: restarted

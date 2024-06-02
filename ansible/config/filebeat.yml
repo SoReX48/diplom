@@ -1,0 +1,65 @@
+###################### Filebeat Configuration Example #########################
+
+# This file is an example configuration file highlighting only the most common
+# options. The filebeat.reference.yml file from the same directory contains all the
+# supported options with more comments. You can use it as a reference.
+#
+# You can find the full configuration reference here:
+# https://www.elastic.co/guide/en/beats/filebeat/index.html
+
+# For more available modules and options, please see the filebeat.reference.yml sample
+# configuration file.
+
+# ============================== Filebeat inputs ===============================
+
+filebeat.inputs:
+
+- type: filestream
+
+  id: peshkin-filebeat
+
+  enabled: true
+
+  paths:
+    - /var/log/nginx/access.log
+    - /var/log/nginx/error.log
+
+# ============================== Filebeat modules ==============================
+
+filebeat.config.modules:
+
+  path: ${path.config}/modules.d/*.yml
+
+  reload.enabled: false
+
+# ======================= Elasticsearch template setting =======================
+
+setup.template.settings:
+  index.number_of_shards: 1
+
+# ================================= Dashboards =================================
+
+setup.dashboards.enabled: true
+
+# =================================== Kibana ===================================
+
+setup.kibana:
+
+  host: "http://192.168.4.30:5601"
+
+# ================================== Outputs ===================================
+
+# Configure what output to use when sending the data collected by the beat.
+
+# ---------------------------- Elasticsearch Output ----------------------------
+output.elasticsearch:
+  # Array of hosts to connect to.
+  hosts: ["192.168.3.10:9200"]
+
+# ================================= Processors =================================
+processors:
+  - add_host_metadata:
+      when.not.contains.tags: forwarded
+  - add_cloud_metadata: ~
+  - add_docker_metadata: ~
+  - add_kubernetes_metadata: ~
