@@ -56,7 +56,7 @@ C копированием веб-морды [index.html](https://github.com/SoR
 
 ![image](https://github.com/SoReX48/diplom/blob/main/images/11.png)
 
-###Мониторинг
+### Мониторинг
 Проверяем доступность ВМ
 
 ![image](https://github.com/SoReX48/diplom/blob/main/images/12.png)
