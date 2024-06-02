@@ -15,12 +15,12 @@
           - gnupg
         state: present
 
-    - name: Копирование GPG-Ключа Elastic на целевую машину
+    - name: Copying the Elastic GPG Key to the target machine
       copy:
         src: /home/user/project_diplom/ansible/file/GPG-KEY-elasticsearch
         dest: /tmp/GPG-KEY-elasticsearch
 
-    - name: установка GPG-ключа Elastic
+    - name: Installing the Elastic GPG key
       ansible.builtin.apt_key:
         file: /tmp/GPG-KEY-elasticsearch
         state: present
