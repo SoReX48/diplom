@@ -4,5 +4,5 @@
 
 Для начала инициализируем наши конфигурационные файлы terraform
 
-![image](https://github.com/SoReX48/diplom/blob/main/images/1,png)
+![image](https://github.com/SoReX48/diplom/blob/main/images/1.png)
 
