@@ -101,4 +101,4 @@ http://158.160.141.27:8080/zabbix.php?action=dashboard.view
 ### Проверяем работу резервного копирования
 Для настройки резервного копирования используется конфигурационный файл terraform [snapshots.tf](https://github.com/SoReX48/diplom/blob/main/terraform/snapshots.tf)
 
-![image](https://github.com/SoReX48/diplom/blob/main/images/23.png)
+![image](https://github.com/SoReX48/diplom/blob/main/images/23.jpg)
